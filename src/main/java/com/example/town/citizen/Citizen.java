@@ -25,6 +25,11 @@ public class Citizen {
      * The job assigned to this citizen
      */
     private JobType job = JobType.LOGGER;
+
+    /**
+     * The current goal of the citizen
+     */
+    private Goal goal;
     
     /**
      * Constructor with entity UUID

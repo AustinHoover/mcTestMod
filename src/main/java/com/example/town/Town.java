@@ -181,4 +181,67 @@ public class Town {
     public List<Task> getTasks() {
         return this.tasks;
     }
+    
+    /**
+     * Add a task to the town's task queue
+     */
+    public void addTask(Task task) {
+        this.tasks.add(task);
+    }
+    
+    /**
+     * Remove a task from the town's task queue
+     */
+    public void removeTask(Task task) {
+        this.tasks.remove(task);
+    }
+    
+    /**
+     * Remove a task by its ID from the town's task queue
+     */
+    public void removeTask(UUID taskId) {
+        this.tasks.removeIf(task -> task.getTaskId().equals(taskId));
+    }
+    
+    /**
+     * Find a task by its ID
+     */
+    public Task getTask(UUID taskId) {
+        return this.tasks.stream()
+            .filter(task -> task.getTaskId().equals(taskId))
+            .findFirst()
+            .orElse(null);
+    }
+    
+    /**
+     * Check if a task with the given ID exists in this town
+     */
+    public boolean hasTask(UUID taskId) {
+        return this.tasks.stream().anyMatch(task -> task.getTaskId().equals(taskId));
+    }
+    
+    /**
+     * Get the number of tasks in this town's queue
+     */
+    public int getTaskCount() {
+        return this.tasks.size();
+    }
+    
+    /**
+     * Get tasks of a specific type
+     */
+    public List<Task> getTasksOfType(Task.TaskType taskType) {
+        return this.tasks.stream()
+            .filter(task -> task.getTaskType() == taskType)
+            .collect(java.util.stream.Collectors.toList());
+    }
+    
+    /**
+     * Get the count of tasks of a specific type
+     */
+    public int getTaskCountOfType(Task.TaskType taskType) {
+        return (int) this.tasks.stream()
+            .filter(task -> task.getTaskType() == taskType)
+            .count();
+    }
 }

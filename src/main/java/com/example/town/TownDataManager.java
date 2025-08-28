@@ -2,6 +2,7 @@ package com.example.town;
 
 import com.example.examplemod.ExampleMod;
 import com.example.town.citizen.Citizen;
+import com.example.town.task.Task;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.server.MinecraftServer;
@@ -89,6 +90,20 @@ public class TownDataManager {
                                 }
                             }
                             
+                            // Load tasks if they exist
+                            if (townData.tasks != null) {
+                                for (TaskData taskData : townData.tasks) {
+                                    try {
+                                        UUID taskId = UUID.fromString(taskData.taskId);
+                                        Vector3L taskPosition = new Vector3L((int)taskData.positionX, (int)taskData.positionY, (int)taskData.positionZ);
+                                        Task task = new Task(taskId, taskData.taskType, taskPosition, taskData.amount);
+                                        town.getTasks().add(task);
+                                    } catch (IllegalArgumentException e) {
+                                        LOGGER.warn("Invalid task UUID format: {}", taskData.taskId);
+                                    }
+                                }
+                            }
+                            
                             worldData.addTown(town);
                         }
                         LOGGER.info("Loaded {} towns from save file", worldData.getTownCount());
@@ -136,6 +151,19 @@ public class TownDataManager {
                     townData.citizens.add(citizenData);
                 }
                 
+                // Convert tasks to TaskData for JSON serialization
+                townData.tasks = new java.util.ArrayList<>();
+                for (Task task : town.getTasks()) {
+                    TaskData taskData = new TaskData();
+                    taskData.taskId = task.getTaskId().toString();
+                    taskData.taskType = task.getTaskType();
+                    taskData.positionX = task.getPosition().x();
+                    taskData.positionY = task.getPosition().y();
+                    taskData.positionZ = task.getPosition().z();
+                    taskData.amount = task.getAmount();
+                    townData.tasks.add(taskData);
+                }
+                
                 townDataList.add(townData);
             }
             
@@ -179,6 +207,7 @@ public class TownDataManager {
         public int food;
         public long tickCount;
         public java.util.List<CitizenData> citizens;
+        public java.util.List<TaskData> tasks;
     }
     
     /**
@@ -187,5 +216,17 @@ public class TownDataManager {
     private static class CitizenData {
         public String entityUUID;
         public Citizen.JobType job;
+    }
+    
+    /**
+     * Data class for individual tasks in JSON
+     */
+    private static class TaskData {
+        public String taskId;
+        public Task.TaskType taskType;
+        public long positionX;
+        public long positionY;
+        public long positionZ;
+        public int amount;
     }
 }
