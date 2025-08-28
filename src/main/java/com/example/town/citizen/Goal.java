@@ -4,6 +4,8 @@ import org.joml.Vector3L;
 
 import com.example.town.task.Task;
 
+import net.minecraft.world.level.pathfinder.Path;
+
 /**
  * A goal for a citizen
  */
@@ -32,6 +34,11 @@ public class Goal {
      * Any associated task
      */
     private Task task;
+
+    /**
+     * The path for the goal
+     */
+    private Path path;
     
     /**
      * Default constructor
@@ -100,6 +107,14 @@ public class Goal {
     
     public void setTask(Task task) {
         this.task = task;
+    }
+    
+    public Path getPath() {
+        return path;
+    }
+    
+    public void setPath(Path path) {
+        this.path = path;
     }
     
     @Override

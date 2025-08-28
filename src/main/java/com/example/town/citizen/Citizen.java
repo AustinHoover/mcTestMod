@@ -3,6 +3,7 @@ package com.example.town.citizen;
 import java.util.UUID;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -11,6 +12,8 @@ import net.minecraft.world.phys.Vec3;
 public class Citizen {
 
     private static final double MOVE_TO_DISTANCE = 1.0;
+
+    private static final double MOVE_TO_SPEED = 0.2;
 
     /**
      * The types of jobs a citizen can do
@@ -100,7 +103,7 @@ public class Citizen {
         }
 
         Vec3 entityPos = entity.position();
-        
+        Villager villager = (Villager) entity;
         Goal goal = this.getGoal();
         
         // First check if the task associated with the goal is null
@@ -145,10 +148,14 @@ public class Citizen {
         
         // Process the goal based on its type
         switch (goalType) {
-            case MOVE_TO:
+            case MOVE_TO: {
                 // For now, do nothing - just log that the citizen is moving
                 System.out.println("Citizen " + this.entityUUID + " is moving to position " + goal.getPosition());
-                break;
+                if(goal.getPath() == null){
+                    villager.getNavigation().moveTo(goal.getPosition().x,goal.getPosition().y,goal.getPosition().z, MOVE_TO_SPEED);
+                    goal.setPath(villager.getNavigation().getPath());
+                }
+            } break;
                 
             case WORK:
                 // For now, do nothing - just log that the citizen is working
