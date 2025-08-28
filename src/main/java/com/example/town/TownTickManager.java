@@ -33,7 +33,7 @@ public class TownTickManager {
             
             if (townCount > 0) {
                 for (Town town : worldData.getTowns()) {
-                    town.incrementTick();
+                    town.simulate();
                 }
                 
                 // Log tick increment every 100 seconds (2000 ticks)

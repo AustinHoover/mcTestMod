@@ -32,11 +32,17 @@ public class Task {
      */
     private int amount;
 
+    /**
+     * The UUID of the citizen that owns this task
+     */
+    private UUID owner;
+
     public Task(TaskType taskType) {
         this.taskId = UUID.randomUUID();
         this.taskType = taskType;
         this.position = new Vector3L();
         this.amount = 0;
+        this.owner = null;
     }
 
     public Task(TaskType taskType, Vector3L position, int amount) {
@@ -47,6 +53,7 @@ public class Task {
             this.position.set(position);
         }
         this.amount = amount;
+        this.owner = null;
     }
 
     /**
@@ -60,6 +67,21 @@ public class Task {
             this.position.set(position);
         }
         this.amount = amount;
+        this.owner = null;
+    }
+    
+    /**
+     * Constructor with existing task ID and owner (for deserialization)
+     */
+    public Task(UUID taskId, TaskType taskType, Vector3L position, int amount, UUID owner) {
+        this.taskId = taskId;
+        this.taskType = taskType;
+        this.position = new Vector3L();
+        if (position != null) {
+            this.position.set(position);
+        }
+        this.amount = amount;
+        this.owner = owner;
     }
 
     // Getters and setters
@@ -97,6 +119,28 @@ public class Task {
         this.amount = amount;
     }
 
+    public UUID getOwner() {
+        return owner;
+    }
+
+    public void setOwner(UUID owner) {
+        this.owner = owner;
+    }
+
+    /**
+     * Check if this task is unassigned (no owner)
+     */
+    public boolean isUnassigned() {
+        return this.owner == null;
+    }
+    
+    /**
+     * Check if this task is assigned to a specific citizen
+     */
+    public boolean isAssignedTo(UUID citizenUUID) {
+        return this.owner != null && this.owner.equals(citizenUUID);
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -112,6 +156,6 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Task{taskId=" + taskId + ", taskType=" + taskType + ", position=" + position + ", amount=" + amount + "}";
+        return "Task{taskId=" + taskId + ", taskType=" + taskType + ", position=" + position + ", amount=" + amount + ", owner=" + owner + "}";
     }
 }

@@ -63,6 +63,27 @@ public class Citizen {
         return this.job == jobType;
     }
     
+    /**
+     * Get the current goal of the citizen
+     */
+    public Goal getGoal() {
+        return goal;
+    }
+    
+    /**
+     * Set the current goal of the citizen
+     */
+    public void setGoal(Goal goal) {
+        this.goal = goal;
+    }
+    
+    /**
+     * Check if the citizen has a goal
+     */
+    public boolean hasGoal() {
+        return this.goal != null;
+    }
+    
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;

@@ -2,10 +2,13 @@ package com.example.town;
 
 import org.joml.Vector3L;
 import com.example.town.citizen.Citizen;
+import com.example.town.citizen.Goal;
+import com.example.town.citizen.Goal.GoalType;
 import com.example.town.task.Task;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -36,7 +39,7 @@ public class Town {
     /**
      * Set of citizens for this town
      */
-    private java.util.Set<Citizen> citizens;
+    private Set<Citizen> citizens;
 
     /**
      * The tasks queued for this town
@@ -92,10 +95,77 @@ public class Town {
     }
     
     /**
-     * Increment the tick count by 1
+     * Increment the tick count by 1 and simulate town behavior
      */
-    public void incrementTick() {
+    public void simulate() {
         this.tickCount++;
+        
+        // Check each citizen for task assignment
+        for (Citizen citizen : this.citizens) {
+            // If citizen doesn't have a goal, try to assign a task
+            if (!citizen.hasGoal()) {
+                // Look for unassigned tasks in the queue
+                for (Task task : this.tasks) {
+                    if (task.isUnassigned()) {
+                        // Create a goal for this citizen based on the task
+                        Goal goal = createGoalFromTask(task);
+                        citizen.setGoal(goal);
+                        
+                        // Assign the task to this citizen
+                        task.setOwner(citizen.getEntityUUID());
+                        
+                        // Log the assignment (optional)
+                        System.out.println("Assigned task " + task.getTaskId() + " to citizen " + citizen.getEntityUUID());
+                        break; // Only assign one task per citizen per tick
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Create a goal for a citizen based on a task
+     */
+    private Goal createGoalFromTask(Task task) {
+        GoalType goalType;
+        
+        switch (task.getTaskType()) {
+            case WOODCUT:
+                goalType = GoalType.WORK;
+                break;
+            default:
+                goalType = GoalType.WORK;
+                break;
+        }
+        
+        return new Goal(goalType, task.getPosition(), task);
+    }
+    
+    /**
+     * Get all unassigned tasks (tasks without an owner)
+     */
+    public List<Task> getUnassignedTasks() {
+        return this.tasks.stream()
+            .filter(Task::isUnassigned)
+            .collect(java.util.stream.Collectors.toList());
+    }
+    
+    /**
+     * Get the count of unassigned tasks
+     */
+    public int getUnassignedTaskCount() {
+        return (int) this.tasks.stream()
+            .filter(Task::isUnassigned)
+            .count();
+    }
+    
+    /**
+     * Get tasks assigned to a specific citizen
+     */
+    public List<Task> getTasksAssignedTo(UUID citizenUUID) {
+        return this.tasks.stream()
+            .filter(task -> task.isAssignedTo(citizenUUID))
+            .collect(java.util.stream.Collectors.toList());
     }
     
     /**

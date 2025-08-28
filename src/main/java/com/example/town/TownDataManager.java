@@ -96,7 +96,15 @@ public class TownDataManager {
                                     try {
                                         UUID taskId = UUID.fromString(taskData.taskId);
                                         Vector3L taskPosition = new Vector3L((int)taskData.positionX, (int)taskData.positionY, (int)taskData.positionZ);
-                                        Task task = new Task(taskId, taskData.taskType, taskPosition, taskData.amount);
+                                        UUID owner = null;
+                                        if (taskData.owner != null) {
+                                            try {
+                                                owner = UUID.fromString(taskData.owner);
+                                            } catch (IllegalArgumentException e) {
+                                                LOGGER.warn("Invalid task owner UUID format: {}", taskData.owner);
+                                            }
+                                        }
+                                        Task task = new Task(taskId, taskData.taskType, taskPosition, taskData.amount, owner);
                                         town.getTasks().add(task);
                                     } catch (IllegalArgumentException e) {
                                         LOGGER.warn("Invalid task UUID format: {}", taskData.taskId);
@@ -161,6 +169,7 @@ public class TownDataManager {
                     taskData.positionY = task.getPosition().y();
                     taskData.positionZ = task.getPosition().z();
                     taskData.amount = task.getAmount();
+                    taskData.owner = task.getOwner() != null ? task.getOwner().toString() : null;
                     townData.tasks.add(taskData);
                 }
                 
@@ -228,5 +237,6 @@ public class TownDataManager {
         public long positionY;
         public long positionZ;
         public int amount;
+        public String owner;
     }
 }
