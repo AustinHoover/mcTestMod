@@ -1,6 +1,8 @@
 package com.example.town;
 
 import org.joml.Vector3L;
+import com.example.town.citizen.Citizen;
+import java.util.UUID;
 
 /**
  * Macro data about a town
@@ -28,9 +30,9 @@ public class Town {
     private long tickCount;
     
     /**
-     * Set of citizen entity UUIDs for this town
+     * Set of citizens for this town
      */
-    private java.util.Set<java.util.UUID> citizens;
+    private java.util.Set<Citizen> citizens;
     
     public Town() {
         this.uuid = java.util.UUID.randomUUID().toString();
@@ -88,38 +90,55 @@ public class Town {
     }
     
     /**
-     * Get the set of citizen UUIDs
+     * Get the set of citizens
      */
-    public java.util.Set<java.util.UUID> getCitizens() {
+    public java.util.Set<Citizen> getCitizens() {
         return citizens;
     }
     
     /**
      * Set the citizens set
      */
-    public void setCitizens(java.util.Set<java.util.UUID> citizens) {
+    public void setCitizens(java.util.Set<Citizen> citizens) {
         this.citizens = citizens;
     }
     
     /**
      * Add a citizen to the town
      */
-    public void addCitizen(java.util.UUID citizenUUID) {
-        this.citizens.add(citizenUUID);
+    public void addCitizen(Citizen citizen) {
+        this.citizens.add(citizen);
     }
     
     /**
      * Remove a citizen from the town
      */
-    public void removeCitizen(java.util.UUID citizenUUID) {
-        this.citizens.remove(citizenUUID);
+    public void removeCitizen(Citizen citizen) {
+        this.citizens.remove(citizen);
+    }
+    
+    /**
+     * Remove a citizen by UUID from the town
+     */
+    public void removeCitizen(UUID citizenUUID) {
+        this.citizens.removeIf(citizen -> citizen.getEntityUUID().equals(citizenUUID));
     }
     
     /**
      * Check if an entity is a citizen of this town
      */
-    public boolean isCitizen(java.util.UUID citizenUUID) {
-        return this.citizens.contains(citizenUUID);
+    public boolean isCitizen(UUID citizenUUID) {
+        return this.citizens.stream().anyMatch(citizen -> citizen.getEntityUUID().equals(citizenUUID));
+    }
+    
+    /**
+     * Get a citizen by UUID
+     */
+    public Citizen getCitizen(UUID citizenUUID) {
+        return this.citizens.stream()
+            .filter(citizen -> citizen.getEntityUUID().equals(citizenUUID))
+            .findFirst()
+            .orElse(null);
     }
     
     /**
@@ -127,5 +146,23 @@ public class Town {
      */
     public int getCitizenCount() {
         return this.citizens.size();
+    }
+    
+    /**
+     * Get citizens with a specific job
+     */
+    public java.util.List<Citizen> getCitizensWithJob(com.example.town.citizen.Citizen.JobType jobType) {
+        return this.citizens.stream()
+            .filter(citizen -> citizen.hasJob(jobType))
+            .collect(java.util.stream.Collectors.toList());
+    }
+    
+    /**
+     * Get the count of citizens with a specific job
+     */
+    public int getCitizenCountWithJob(com.example.town.citizen.Citizen.JobType jobType) {
+        return (int) this.citizens.stream()
+            .filter(citizen -> citizen.hasJob(jobType))
+            .count();
     }
 }

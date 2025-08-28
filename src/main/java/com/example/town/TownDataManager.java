@@ -1,6 +1,7 @@
 package com.example.town;
 
 import com.example.examplemod.ExampleMod;
+import com.example.town.citizen.Citizen;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.server.MinecraftServer;
@@ -19,6 +20,7 @@ import java.io.FileWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Manages saving and loading of WorldTownData to/from save files
@@ -76,12 +78,13 @@ public class TownDataManager {
                             
                             // Load citizens if they exist
                             if (townData.citizens != null) {
-                                for (String citizenUUIDString : townData.citizens) {
+                                for (CitizenData citizenData : townData.citizens) {
                                     try {
-                                        java.util.UUID citizenUUID = java.util.UUID.fromString(citizenUUIDString);
-                                        town.addCitizen(citizenUUID);
+                                        UUID citizenUUID = UUID.fromString(citizenData.entityUUID);
+                                        Citizen citizen = new Citizen(citizenUUID);
+                                        town.addCitizen(citizen);
                                     } catch (IllegalArgumentException e) {
-                                        LOGGER.warn("Invalid citizen UUID format: {}", citizenUUIDString);
+                                        LOGGER.warn("Invalid citizen UUID format: {}", citizenData.entityUUID);
                                     }
                                 }
                             }
@@ -124,10 +127,13 @@ public class TownDataManager {
                 townData.food = town.getStockpile().getFood();
                 townData.tickCount = town.getTickCount();
                 
-                // Convert citizen UUIDs to strings for JSON serialization
+                // Convert citizens to CitizenData for JSON serialization
                 townData.citizens = new java.util.ArrayList<>();
-                for (java.util.UUID citizenUUID : town.getCitizens()) {
-                    townData.citizens.add(citizenUUID.toString());
+                for (Citizen citizen : town.getCitizens()) {
+                    CitizenData citizenData = new CitizenData();
+                    citizenData.entityUUID = citizen.getEntityUUID().toString();
+                    citizenData.job = citizen.getJob();
+                    townData.citizens.add(citizenData);
                 }
                 
                 townDataList.add(townData);
@@ -172,6 +178,14 @@ public class TownDataManager {
         public int wood;
         public int food;
         public long tickCount;
-        public java.util.List<String> citizens;
+        public java.util.List<CitizenData> citizens;
+    }
+    
+    /**
+     * Data class for individual citizens in JSON
+     */
+    private static class CitizenData {
+        public String entityUUID;
+        public Citizen.JobType job;
     }
 }

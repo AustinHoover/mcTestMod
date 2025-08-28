@@ -16,6 +16,7 @@ import com.example.examplemod.ExampleMod;
 import com.example.town.Town;
 import com.example.town.WorldTownData;
 import com.example.town.TownDataManager;
+import com.example.town.citizen.Citizen;
 import org.joml.Vector3L;
 
 /**
@@ -42,18 +43,22 @@ public class CitizenWand extends Item {
             
             // Check if villager is already a citizen
             if (nearestTown.isCitizen(villagerUUID)) {
-                player.displayClientMessage(Component.literal("§6[CitizenWand] §eThis villager is already a citizen of town " + nearestTown.getUUID()), false);
+                Citizen existingCitizen = nearestTown.getCitizen(villagerUUID);
+                player.displayClientMessage(Component.literal("§6[CitizenWand] §eThis villager is already a citizen of town " + nearestTown.getUUID() + " as a " + existingCitizen.getJob().name().toLowerCase()), false);
                 return InteractionResult.SUCCESS;
             }
             
-            // Add villager to the town
-            nearestTown.addCitizen(villagerUUID);
+            // Create a new Citizen object
+            Citizen newCitizen = new Citizen(villagerUUID);
+            
+            // Add citizen to the town
+            nearestTown.addCitizen(newCitizen);
             
             // Save the data
             TownDataManager.saveData();
             
             // Send success message
-            player.displayClientMessage(Component.literal("§6[CitizenWand] §aAdded villager to town " + nearestTown.getUUID() + "! Town now has " + nearestTown.getCitizenCount() + " citizens."), false);
+            player.displayClientMessage(Component.literal("§6[CitizenWand] §aAdded villager to town " + nearestTown.getUUID() + " as a " + newCitizen.getJob().name().toLowerCase() + "! Town now has " + nearestTown.getCitizenCount() + " citizens."), false);
             
             return InteractionResult.SUCCESS;
         }
