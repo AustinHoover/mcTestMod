@@ -45,8 +45,7 @@ public class TownCommand {
                         .executes(TownCommand::addWoodToNearestTown)))
                 .then(Commands.literal("food")
                     .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                        .executes(TownCommand::addFoodToNearestTown))))
-            );
+                        .executes(TownCommand::addFoodToNearestTown)))));
     }
     
     /**
@@ -297,4 +296,5 @@ public class TownCommand {
         
         return nearestTown;
     }
+
 }
