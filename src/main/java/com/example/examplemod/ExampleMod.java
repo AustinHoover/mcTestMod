@@ -1,6 +1,7 @@
 package com.example.examplemod;
 
 import com.example.examplemod.command.TownCommand;
+import com.example.item.CitizenWand;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
@@ -65,6 +66,11 @@ public final class ExampleMod {
             )
         )
     );
+    
+    // Creates a new citizen wand item
+    public static final RegistryObject<Item> CITIZEN_WAND = ITEMS.register("citizen_wand",
+        () -> new CitizenWand()
+    );
 
     // Creates a creative tab with the id "examplemod:example_tab" for the example item, that is placed after the combat tab
     public static final RegistryObject<CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder()
@@ -72,6 +78,7 @@ public final class ExampleMod {
             .icon(() -> EXAMPLE_ITEM.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
                 output.accept(EXAMPLE_ITEM.get()); // Add the example item to the tab. For your own tabs, this method is preferred over the event
+                output.accept(CITIZEN_WAND.get()); // Add the citizen wand to the tab
             }).build());
 
     public ExampleMod(FMLJavaModLoadingContext context) {
@@ -108,8 +115,10 @@ public final class ExampleMod {
 
     // Add the example block item to the building blocks tab
     private static void addCreative(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS)
+        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
             event.accept(EXAMPLE_BLOCK_ITEM);
+            event.accept(CITIZEN_WAND);
+        }
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
