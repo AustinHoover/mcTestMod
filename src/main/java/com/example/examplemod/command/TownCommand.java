@@ -45,7 +45,8 @@ public class TownCommand {
                         .executes(TownCommand::addWoodToNearestTown)))
                 .then(Commands.literal("food")
                     .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                        .executes(TownCommand::addFoodToNearestTown)))));
+                        .executes(TownCommand::addFoodToNearestTown))))
+            );
     }
     
     /**
@@ -126,9 +127,9 @@ public class TownCommand {
         for (Town town : worldData.getTowns()) {
             Vector3L pos = town.getCenterPos();
             context.getSource().sendSuccess(() -> Component.literal(
-                String.format("- Town %s at (%d, %d, %d) with stockpile [Wood: %d, Food: %d] (ticks: %d)", 
+                String.format("- Town %s at (%d, %d, %d) with stockpile [Wood: %d, Food: %d] (ticks: %d, citizens: %d)", 
                     town.getUUID(), pos.x(), pos.y(), pos.z(), 
-                    town.getStockpile().getWood(), town.getStockpile().getFood(), town.getTickCount())
+                    town.getStockpile().getWood(), town.getStockpile().getFood(), town.getTickCount(), town.getCitizenCount())
             ), false);
         }
         
@@ -173,10 +174,10 @@ public class TownCommand {
         final double finalNearestDistance = nearestDistance;
         Vector3L townPos = finalNearestTown.getCenterPos();
         context.getSource().sendSuccess(() -> Component.literal(
-            String.format("Nearest town: %s at (%d, %d, %d) with stockpile [Wood: %d, Food: %d], tick count %d (distance: %.1f blocks)", 
+            String.format("Nearest town: %s at (%d, %d, %d) with stockpile [Wood: %d, Food: %d], tick count %d, citizens: %d (distance: %.1f blocks)", 
                 finalNearestTown.getUUID(), townPos.x(), townPos.y(), townPos.z(), 
                 finalNearestTown.getStockpile().getWood(), finalNearestTown.getStockpile().getFood(), 
-                finalNearestTown.getTickCount(), finalNearestDistance)
+                finalNearestTown.getTickCount(), finalNearestTown.getCitizenCount(), finalNearestDistance)
         ), false);
         
         return 1;

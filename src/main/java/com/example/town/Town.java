@@ -27,11 +27,17 @@ public class Town {
      */
     private long tickCount;
     
+    /**
+     * Set of citizen entity UUIDs for this town
+     */
+    private java.util.Set<java.util.UUID> citizens;
+    
     public Town() {
         this.uuid = java.util.UUID.randomUUID().toString();
         this.centerPos = new Vector3L(0, 0, 0);
         this.stockpile = new TownStockpile();
         this.tickCount = 0;
+        this.citizens = new java.util.HashSet<>();
     }
     
     public Town(String uuid, Vector3L centerPos) {
@@ -39,6 +45,7 @@ public class Town {
         this.centerPos = centerPos;
         this.stockpile = new TownStockpile();
         this.tickCount = 0;
+        this.citizens = new java.util.HashSet<>();
     }
     
     public String getUUID() {
@@ -78,5 +85,47 @@ public class Town {
      */
     public void incrementTick() {
         this.tickCount++;
+    }
+    
+    /**
+     * Get the set of citizen UUIDs
+     */
+    public java.util.Set<java.util.UUID> getCitizens() {
+        return citizens;
+    }
+    
+    /**
+     * Set the citizens set
+     */
+    public void setCitizens(java.util.Set<java.util.UUID> citizens) {
+        this.citizens = citizens;
+    }
+    
+    /**
+     * Add a citizen to the town
+     */
+    public void addCitizen(java.util.UUID citizenUUID) {
+        this.citizens.add(citizenUUID);
+    }
+    
+    /**
+     * Remove a citizen from the town
+     */
+    public void removeCitizen(java.util.UUID citizenUUID) {
+        this.citizens.remove(citizenUUID);
+    }
+    
+    /**
+     * Check if an entity is a citizen of this town
+     */
+    public boolean isCitizen(java.util.UUID citizenUUID) {
+        return this.citizens.contains(citizenUUID);
+    }
+    
+    /**
+     * Get the number of citizens in this town
+     */
+    public int getCitizenCount() {
+        return this.citizens.size();
     }
 }

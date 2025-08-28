@@ -73,6 +73,19 @@ public class TownDataManager {
                             town.getStockpile().addFood(townData.food);
                             // Reset tick count to 0 when loading from disk
                             town.setTickCount(0);
+                            
+                            // Load citizens if they exist
+                            if (townData.citizens != null) {
+                                for (String citizenUUIDString : townData.citizens) {
+                                    try {
+                                        java.util.UUID citizenUUID = java.util.UUID.fromString(citizenUUIDString);
+                                        town.addCitizen(citizenUUID);
+                                    } catch (IllegalArgumentException e) {
+                                        LOGGER.warn("Invalid citizen UUID format: {}", citizenUUIDString);
+                                    }
+                                }
+                            }
+                            
                             worldData.addTown(town);
                         }
                         LOGGER.info("Loaded {} towns from save file", worldData.getTownCount());
@@ -110,6 +123,13 @@ public class TownDataManager {
                 townData.wood = town.getStockpile().getWood();
                 townData.food = town.getStockpile().getFood();
                 townData.tickCount = town.getTickCount();
+                
+                // Convert citizen UUIDs to strings for JSON serialization
+                townData.citizens = new java.util.ArrayList<>();
+                for (java.util.UUID citizenUUID : town.getCitizens()) {
+                    townData.citizens.add(citizenUUID.toString());
+                }
+                
                 townDataList.add(townData);
             }
             
@@ -152,5 +172,6 @@ public class TownDataManager {
         public int wood;
         public int food;
         public long tickCount;
+        public java.util.List<String> citizens;
     }
 }
