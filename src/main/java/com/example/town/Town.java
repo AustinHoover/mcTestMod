@@ -20,7 +20,7 @@ public class Town {
     /**
      * A generic stockpile value of the town
      */
-    private int stockpile;
+    private TownStockpile stockpile;
     
     /**
      * Tick count for the town (incremented each server tick)
@@ -30,14 +30,14 @@ public class Town {
     public Town() {
         this.uuid = java.util.UUID.randomUUID().toString();
         this.centerPos = new Vector3L(0, 0, 0);
-        this.stockpile = 0;
+        this.stockpile = new TownStockpile();
         this.tickCount = 0;
     }
     
-    public Town(String uuid, Vector3L centerPos, int stockpile) {
+    public Town(String uuid, Vector3L centerPos) {
         this.uuid = uuid;
         this.centerPos = centerPos;
-        this.stockpile = stockpile;
+        this.stockpile = new TownStockpile();
         this.tickCount = 0;
     }
     
@@ -57,11 +57,11 @@ public class Town {
         this.centerPos = centerPos;
     }
     
-    public int getStockpile() {
+    public TownStockpile getStockpile() {
         return stockpile;
     }
     
-    public void setStockpile(int stockpile) {
+    public void setStockpile(TownStockpile stockpile) {
         this.stockpile = stockpile;
     }
     

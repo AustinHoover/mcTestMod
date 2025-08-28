@@ -66,9 +66,11 @@ public class TownDataManager {
                         worldData.clearTowns();
                         
                         for (TownData townData : container.towns) {
-                            Vector3L centerPos = new Vector3L();
-                            centerPos.set(townData.centerX, townData.centerY, townData.centerZ);
-                            Town town = new Town(townData.uuid, centerPos, townData.stockpile);
+                            Vector3L centerPos = new Vector3L((int)townData.centerX, (int)townData.centerY, (int)townData.centerZ);
+                            Town town = new Town(townData.uuid, centerPos);
+                            // Set the stockpile values from the loaded data
+                            town.getStockpile().addWood(townData.wood);
+                            town.getStockpile().addFood(townData.food);
                             // Reset tick count to 0 when loading from disk
                             town.setTickCount(0);
                             worldData.addTown(town);
@@ -105,7 +107,8 @@ public class TownDataManager {
                 townData.centerX = town.getCenterPos().x();
                 townData.centerY = town.getCenterPos().y();
                 townData.centerZ = town.getCenterPos().z();
-                townData.stockpile = town.getStockpile();
+                townData.wood = town.getStockpile().getWood();
+                townData.food = town.getStockpile().getFood();
                 townData.tickCount = town.getTickCount();
                 townDataList.add(townData);
             }
@@ -146,7 +149,8 @@ public class TownDataManager {
         public long centerX;
         public long centerY;
         public long centerZ;
-        public int stockpile;
+        public int wood;
+        public int food;
         public long tickCount;
     }
 }

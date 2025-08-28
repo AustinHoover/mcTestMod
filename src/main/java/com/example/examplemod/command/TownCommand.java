@@ -4,7 +4,9 @@ import com.example.town.Town;
 import com.example.town.TownDataManager;
 import com.example.town.WorldTownData;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
@@ -36,7 +38,14 @@ public class TownCommand {
             .then(Commands.literal("info")
                 .executes(TownCommand::showTownInfo))
             .then(Commands.literal("ticks")
-                .executes(TownCommand::showTickInfo)));
+                .executes(TownCommand::showTickInfo))
+            .then(Commands.literal("give")
+                .then(Commands.literal("wood")
+                    .then(Commands.argument("amount", IntegerArgumentType.integer(1))
+                        .executes(TownCommand::addWoodToNearestTown)))
+                .then(Commands.literal("food")
+                    .then(Commands.argument("amount", IntegerArgumentType.integer(1))
+                        .executes(TownCommand::addFoodToNearestTown)))));
     }
     
     /**
@@ -117,8 +126,9 @@ public class TownCommand {
         for (Town town : worldData.getTowns()) {
             Vector3L pos = town.getCenterPos();
             context.getSource().sendSuccess(() -> Component.literal(
-                String.format("- Town %s at (%d, %d, %d) with stockpile %d (ticks: %d)", 
-                    town.getUUID(), pos.x(), pos.y(), pos.z(), town.getStockpile(), town.getTickCount())
+                String.format("- Town %s at (%d, %d, %d) with stockpile [Wood: %d, Food: %d] (ticks: %d)", 
+                    town.getUUID(), pos.x(), pos.y(), pos.z(), 
+                    town.getStockpile().getWood(), town.getStockpile().getFood(), town.getTickCount())
             ), false);
         }
         
@@ -163,9 +173,10 @@ public class TownCommand {
         final double finalNearestDistance = nearestDistance;
         Vector3L townPos = finalNearestTown.getCenterPos();
         context.getSource().sendSuccess(() -> Component.literal(
-            String.format("Nearest town: %s at (%d, %d, %d) with stockpile %d, tick count %d (distance: %.1f blocks)", 
+            String.format("Nearest town: %s at (%d, %d, %d) with stockpile [Wood: %d, Food: %d], tick count %d (distance: %.1f blocks)", 
                 finalNearestTown.getUUID(), townPos.x(), townPos.y(), townPos.z(), 
-                finalNearestTown.getStockpile(), finalNearestTown.getTickCount(), finalNearestDistance)
+                finalNearestTown.getStockpile().getWood(), finalNearestTown.getStockpile().getFood(), 
+                finalNearestTown.getTickCount(), finalNearestDistance)
         ), false);
         
         return 1;
@@ -205,5 +216,84 @@ public class TownCommand {
         }
         
         return 1;
+    }
+    
+    /**
+     * Add wood to the nearest town
+     */
+    private static int addWoodToNearestTown(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        int amount = IntegerArgumentType.getInteger(context, "amount");
+        
+        Town nearestTown = findNearestTown(player);
+        if (nearestTown == null) {
+            context.getSource().sendFailure(Component.literal("No towns found in this world."));
+            return 0;
+        }
+        
+        nearestTown.getStockpile().addWood(amount);
+        TownDataManager.saveData();
+        
+        context.getSource().sendSuccess(() -> Component.literal(
+            String.format("Added %d wood to town %s. New total: %d wood", 
+                amount, nearestTown.getUUID(), nearestTown.getStockpile().getWood())
+        ), true);
+        
+        return 1;
+    }
+    
+    /**
+     * Add food to the nearest town
+     */
+    private static int addFoodToNearestTown(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        int amount = IntegerArgumentType.getInteger(context, "amount");
+        
+        Town nearestTown = findNearestTown(player);
+        if (nearestTown == null) {
+            context.getSource().sendFailure(Component.literal("No towns found in this world."));
+            return 0;
+        }
+        
+        nearestTown.getStockpile().addFood(amount);
+        TownDataManager.saveData();
+        
+        context.getSource().sendSuccess(() -> Component.literal(
+            String.format("Added %d food to town %s. New total: %d food", 
+                amount, nearestTown.getUUID(), nearestTown.getStockpile().getFood())
+        ), true);
+        
+        return 1;
+    }
+    
+    /**
+     * Helper method to find the nearest town to a player
+     */
+    private static Town findNearestTown(ServerPlayer player) {
+        Vector3L playerPos = new Vector3L(
+            player.getBlockX(),
+            player.getBlockY(),
+            player.getBlockZ()
+        );
+        
+        WorldTownData worldData = WorldTownData.getInstance();
+        Town nearestTown = null;
+        double nearestDistance = Double.MAX_VALUE;
+        
+        for (Town town : worldData.getTowns()) {
+            Vector3L townPos = town.getCenterPos();
+            double distance = Math.sqrt(
+                Math.pow(townPos.x() - playerPos.x(), 2) +
+                Math.pow(townPos.y() - playerPos.y(), 2) +
+                Math.pow(townPos.z() - playerPos.z(), 2)
+            );
+            
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearestTown = town;
+            }
+        }
+        
+        return nearestTown;
     }
 }
