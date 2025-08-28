@@ -1,10 +1,19 @@
 package com.example.town;
 
+import org.apache.commons.compress.compressors.lz77support.LZ77Compressor.Block;
 import org.joml.Vector3L;
 import com.example.town.citizen.Citizen;
 import com.example.town.citizen.Goal;
 import com.example.town.citizen.Goal.GoalType;
 import com.example.town.task.Task;
+import com.example.util.BlockSearchUtils;
+
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.TickEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +24,11 @@ import java.util.UUID;
  * Macro data about a town
  */
 public class Town {
+
+    /**
+     * Scan range for woodcutting task
+     */
+    private static final int WOODCUT_RANGE = 10;
 
     /**
      * The UUID of the town
@@ -97,26 +111,38 @@ public class Town {
     /**
      * Increment the tick count by 1 and simulate town behavior
      */
-    public void simulate() {
+    public void simulate(TickEvent.ServerTickEvent event) {
         this.tickCount++;
+
+        ServerLevel overworld = event.getServer().overworld();
         
         // Check each citizen for task assignment
         for (Citizen citizen : this.citizens) {
+            Entity entity = event.getServer().overworld().getEntity(citizen.getEntityUUID());
+            if(entity == null){
+                continue;
+            }
             // If citizen doesn't have a goal, try to assign a task
             if (!citizen.hasGoal()) {
                 // Look for unassigned tasks in the queue
                 for (Task task : this.tasks) {
                     if (task.isUnassigned()) {
-                        // Create a goal for this citizen based on the task
-                        Goal goal = createGoalFromTask(task);
-                        citizen.setGoal(goal);
-                        
-                        // Assign the task to this citizen
-                        task.setOwner(citizen.getEntityUUID());
-                        
-                        // Log the assignment (optional)
-                        System.out.println("Assigned task " + task.getTaskId() + " to citizen " + citizen.getEntityUUID());
-                        break; // Only assign one task per citizen per tick
+                        // Check if the task can be assigned before proceeding
+                        if (canTaskBeAssigned(overworld, entity, task)) {
+                            // Create a goal for this citizen based on the task
+                            Goal goal = createGoalFromTask(task);
+                            citizen.setGoal(goal);
+                            
+                            // Assign the task to this citizen
+                            task.setOwner(citizen.getEntityUUID());
+                            
+                            // Log the assignment (optional)
+                            System.out.println("Assigned task " + task.getTaskId() + " to citizen " + citizen.getEntityUUID());
+                            break; // Only assign one task per citizen per tick
+                        } else {
+                            // Log that the task couldn't be assigned
+                            System.out.println("Task " + task.getTaskId() + " cannot be assigned (validation failed)");
+                        }
                     }
                 }
             }
@@ -313,5 +339,24 @@ public class Town {
         return (int) this.tasks.stream()
             .filter(task -> task.getTaskType() == taskType)
             .count();
+    }
+
+    private boolean canTaskBeAssigned(Level level, Entity entity, Task task) {
+        if(!task.isUnassigned()){
+            System.out.println("Task is already assigned");
+            return false;
+        }
+        switch(task.getTaskType()){
+            case WOODCUT: {
+                Vector3L blockPos = BlockSearchUtils.findBlockInRange(level, WOODCUT_RANGE, Blocks.OAK_WOOD, this.getCenterPos());
+                if(blockPos != null){
+                    task.setPosition(blockPos);
+                    return true;
+                }
+                System.out.println("Task is already assigned");
+                return false;
+            }
+        }
+        return true;
     }
 }
