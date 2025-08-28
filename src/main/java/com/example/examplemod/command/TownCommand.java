@@ -34,7 +34,9 @@ public class TownCommand {
             .then(Commands.literal("list")
                 .executes(TownCommand::listTowns))
             .then(Commands.literal("info")
-                .executes(TownCommand::showTownInfo)));
+                .executes(TownCommand::showTownInfo))
+            .then(Commands.literal("ticks")
+                .executes(TownCommand::showTickInfo)));
     }
     
     /**
@@ -115,8 +117,8 @@ public class TownCommand {
         for (Town town : worldData.getTowns()) {
             Vector3L pos = town.getCenterPos();
             context.getSource().sendSuccess(() -> Component.literal(
-                String.format("- Town %s at (%d, %d, %d) with stockpile %d", 
-                    town.getUUID(), pos.x(), pos.y(), pos.z(), town.getStockpile())
+                String.format("- Town %s at (%d, %d, %d) with stockpile %d (ticks: %d)", 
+                    town.getUUID(), pos.x(), pos.y(), pos.z(), town.getStockpile(), town.getTickCount())
             ), false);
         }
         
@@ -161,10 +163,46 @@ public class TownCommand {
         final double finalNearestDistance = nearestDistance;
         Vector3L townPos = finalNearestTown.getCenterPos();
         context.getSource().sendSuccess(() -> Component.literal(
-            String.format("Nearest town: %s at (%d, %d, %d) with stockpile %d (distance: %.1f blocks)", 
+            String.format("Nearest town: %s at (%d, %d, %d) with stockpile %d, tick count %d (distance: %.1f blocks)", 
                 finalNearestTown.getUUID(), townPos.x(), townPos.y(), townPos.z(), 
-                finalNearestTown.getStockpile(), finalNearestDistance)
+                finalNearestTown.getStockpile(), finalNearestTown.getTickCount(), finalNearestDistance)
         ), false);
+        
+        return 1;
+    }
+    
+    /**
+     * Show tick information for the server and towns
+     */
+    private static int showTickInfo(CommandContext<CommandSourceStack> context) {
+        WorldTownData worldData = WorldTownData.getInstance();
+        int townCount = worldData.getTownCount();
+        
+        context.getSource().sendSuccess(() -> Component.literal(
+            String.format("Server tick counter: %d", com.example.town.TownTickManager.getTickCounter())
+        ), false);
+        
+        context.getSource().sendSuccess(() -> Component.literal(
+            String.format("Total towns: %d", townCount)
+        ), false);
+        
+        if (townCount > 0) {
+            long totalTicks = 0;
+            for (Town town : worldData.getTowns()) {
+                totalTicks += town.getTickCount();
+            }
+            
+            final long finalTotalTicks = totalTicks;
+            final int finalTownCount = townCount;
+            
+            context.getSource().sendSuccess(() -> Component.literal(
+                String.format("Total town ticks: %d", finalTotalTicks)
+            ), false);
+            
+            context.getSource().sendSuccess(() -> Component.literal(
+                String.format("Average ticks per town: %.1f", (double) finalTotalTicks / finalTownCount)
+            ), false);
+        }
         
         return 1;
     }

@@ -69,6 +69,8 @@ public class TownDataManager {
                             Vector3L centerPos = new Vector3L();
                             centerPos.set(townData.centerX, townData.centerY, townData.centerZ);
                             Town town = new Town(townData.uuid, centerPos, townData.stockpile);
+                            // Reset tick count to 0 when loading from disk
+                            town.setTickCount(0);
                             worldData.addTown(town);
                         }
                         LOGGER.info("Loaded {} towns from save file", worldData.getTownCount());
@@ -104,6 +106,7 @@ public class TownDataManager {
                 townData.centerY = town.getCenterPos().y();
                 townData.centerZ = town.getCenterPos().z();
                 townData.stockpile = town.getStockpile();
+                townData.tickCount = town.getTickCount();
                 townDataList.add(townData);
             }
             
@@ -144,5 +147,6 @@ public class TownDataManager {
         public long centerY;
         public long centerZ;
         public int stockpile;
+        public long tickCount;
     }
 }
