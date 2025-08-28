@@ -1,0 +1,7 @@
+---
+description: JOML rules
+globs:
+alwaysApply: true
+---
+
+When working with Vector3L from JOML, use a no-argument constructor and then call set() immediately after. Do not use a constructor that takes in three longs.
