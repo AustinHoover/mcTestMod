@@ -146,8 +146,13 @@ public class Town {
                     }
                 }
             }
+            
+            // Simulate the citizen's behavior based on their current goal
+            citizen.simulate(entity, overworld);
         }
     }
+    
+
     
     /**
      * Create a goal for a citizen based on a task
@@ -157,7 +162,7 @@ public class Town {
         
         switch (task.getTaskType()) {
             case WOODCUT:
-                goalType = GoalType.WORK;
+                goalType = GoalType.MOVE_TO;
                 break;
             default:
                 goalType = GoalType.WORK;
