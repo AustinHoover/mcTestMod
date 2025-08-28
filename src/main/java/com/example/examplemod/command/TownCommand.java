@@ -3,6 +3,8 @@ package com.example.examplemod.command;
 import com.example.town.Town;
 import com.example.town.TownDataManager;
 import com.example.town.WorldTownData;
+import com.example.town.task.Task;
+import com.example.town.task.Task.TaskType;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -45,7 +47,17 @@ public class TownCommand {
                         .executes(TownCommand::addWoodToNearestTown)))
                 .then(Commands.literal("food")
                     .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                        .executes(TownCommand::addFoodToNearestTown)))));
+                        .executes(TownCommand::addFoodToNearestTown))))
+            .then(Commands.literal("queue")
+                .then(Commands.literal("woodcut")
+                    .executes(TownCommand::queueWoodcutTask)
+                )
+                .then(Commands.literal("clear")
+                    .executes(TownCommand::clearTasks)
+                )
+            )
+                    
+            );
     }
     
     /**
@@ -173,10 +185,10 @@ public class TownCommand {
         final double finalNearestDistance = nearestDistance;
         Vector3L townPos = finalNearestTown.getCenterPos();
         context.getSource().sendSuccess(() -> Component.literal(
-            String.format("Nearest town: %s at (%d, %d, %d) with stockpile [Wood: %d, Food: %d], tick count %d, citizens: %d (distance: %.1f blocks)", 
+            String.format("Nearest town: %s at (%d, %d, %d) with stockpile [Wood: %d, Food: %d], tick count %d, citizens: %d (distance: %.1f blocks), tasks: %d", 
                 finalNearestTown.getUUID(), townPos.x(), townPos.y(), townPos.z(), 
                 finalNearestTown.getStockpile().getWood(), finalNearestTown.getStockpile().getFood(), 
-                finalNearestTown.getTickCount(), finalNearestTown.getCitizenCount(), finalNearestDistance)
+                finalNearestTown.getTickCount(), finalNearestTown.getCitizenCount(), finalNearestDistance, finalNearestTown.getTasks().size())
         ), false);
         
         return 1;
@@ -263,6 +275,28 @@ public class TownCommand {
                 amount, nearestTown.getUUID(), nearestTown.getStockpile().getFood())
         ), true);
         
+        return 1;
+    }
+
+    private static int queueWoodcutTask(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        Town nearestTown = findNearestTown(player);
+        if (nearestTown == null) {
+            context.getSource().sendFailure(Component.literal("No towns found in this world."));
+            return 0;
+        }
+        nearestTown.getTasks().add(new Task(TaskType.WOODCUT));
+        return 1;
+    }
+
+    private static int clearTasks(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        Town nearestTown = findNearestTown(player);
+        if (nearestTown == null) {
+            context.getSource().sendFailure(Component.literal("No towns found in this world."));
+            return 0;
+        }
+        nearestTown.getTasks().clear();
         return 1;
     }
     

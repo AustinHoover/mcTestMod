@@ -2,6 +2,10 @@ package com.example.town;
 
 import org.joml.Vector3L;
 import com.example.town.citizen.Citizen;
+import com.example.town.task.Task;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -33,6 +37,11 @@ public class Town {
      * Set of citizens for this town
      */
     private java.util.Set<Citizen> citizens;
+
+    /**
+     * The tasks queued for this town
+     */
+    private List<Task> tasks = new ArrayList<Task>();
     
     public Town() {
         this.uuid = java.util.UUID.randomUUID().toString();
@@ -164,5 +173,12 @@ public class Town {
         return (int) this.citizens.stream()
             .filter(citizen -> citizen.hasJob(jobType))
             .count();
+    }
+
+    /**
+     * Get the list of tasks for this town.
+     */
+    public List<Task> getTasks() {
+        return this.tasks;
     }
 }
